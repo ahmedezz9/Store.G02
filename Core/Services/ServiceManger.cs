@@ -11,7 +11,6 @@ namespace Services
 {
     public class ServiceManger(IUnitOfWork unitOfWork,IMapper mapper) : IServiceManger
     {
-        //Return Product Service
         public IProductService ProductService { get; } = new ProductService(unitOfWork, mapper);
         
     }
