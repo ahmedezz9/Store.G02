@@ -1,6 +1,7 @@
 
 using Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Persistence;
 using Persistence.Data;
 using Services;
@@ -28,7 +29,9 @@ namespace Store.G02.Api
             });
             builder.Services.AddScoped<IDbInitializer, DbInitializer>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddAutoMapper(x=> x.AddProfile(new ProductProfile()));
+
+            //builder.Services.AddAutoMapper(typeof(AsssemblyRefrence).Assembly);
+            builder.Services.AddAutoMapper(cfg => { }, typeof(AsssemblyRefrence).Assembly);
             builder.Services.AddScoped<IServiceManger,ServiceManger>();
             var app = builder.Build();
 
@@ -42,7 +45,7 @@ namespace Store.G02.Api
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
