@@ -2,6 +2,7 @@
 using Domain.Contracts;
 using Domain.Models;
 using Services.Abstractions;
+using Services.Specifications;
 using Shared;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,10 @@ namespace Services
     public class ProductService(IUnitOfWork unitOfWork,IMapper mapper) : IProductService
     {
 
-        public async Task<IEnumerable<ProductResultDto>> GetAllProductsAsync()
+        public async Task<IEnumerable<ProductResultDto>> GetAllProductsAsync(int? brandId,int? typeId,string? sort,int pageIndex=1,int pageSize=5)
         {
-           var products =  await unitOfWork.GetRepository<Product,int>().GetAllAsync();
+            var spec = new ProductWithBrandsAndTypesSpecifications(brandId,typeId,sort,pageIndex,pageSize);
+            var products =  await unitOfWork.GetRepository<Product,int>().GetAllAsync(spec);
 
            var result = mapper.Map<IEnumerable<ProductResultDto>>(products);
 
@@ -25,7 +27,9 @@ namespace Services
         }
         public async Task<ProductResultDto?> GetProductByIdAsync(int id)
         {
-            var product = await unitOfWork.GetRepository<Product,int>().GetAsync(id);
+            var spec = new ProductWithBrandsAndTypesSpecifications(id);
+
+            var product = await unitOfWork.GetRepository<Product,int>().GetAsync(spec);
             if(product is null)return null;
             var result = mapper.Map<ProductResultDto>(product);
             return result;
