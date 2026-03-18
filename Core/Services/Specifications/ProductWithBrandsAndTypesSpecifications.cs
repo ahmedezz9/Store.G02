@@ -1,4 +1,5 @@
 ﻿using Domain.Models;
+using Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,11 @@ namespace Services.Specifications
         {
             ApplyIncludes();
         }
-        public ProductWithBrandsAndTypesSpecifications(int? brandId,int? typeId,string? sort,int pageIndex,int pageSize) : base(p=>(!brandId.HasValue || p.BrandId == brandId) &&(!typeId.HasValue || p.TypeId ==typeId))
+        public ProductWithBrandsAndTypesSpecifications(ProductSpecificationsParameters specParams) : base(p=>(!specParams.BrandId.HasValue || p.BrandId == specParams.BrandId) &&(!specParams.TypeId.HasValue || p.TypeId ==specParams.TypeId))
         {
             ApplyIncludes();
-            ApplySorting(sort);
-            ApplyPagination(pageIndex, pageSize);
+            ApplySorting(specParams.Sort);
+            ApplyPagination(specParams.PageIndex, specParams.PageSize);
         }
 
         private void ApplyIncludes()
@@ -34,7 +35,7 @@ namespace Services.Specifications
                     case "nameasc":
                         AddOrderBy(p => p.Name);
                         break;
-                    case "namedexc":
+                    case "namedesc":
                         AddOrderByDescending(p => p.Name);
                         break;
                     case "priceasc":
