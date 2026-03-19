@@ -16,14 +16,25 @@ namespace Services
     public class ProductService(IUnitOfWork unitOfWork,IMapper mapper) : IProductService
     {
 
-        public async Task<IEnumerable<ProductResultDto>> GetAllProductsAsync(ProductSpecificationsParameters specParams)
+        //public async Task<IEnumerable<ProductResultDto>> GetAllProductsAsync(ProductSpecificationsParameters specParams)
+        //{
+        //    var spec = new ProductWithBrandsAndTypesSpecifications(specParams);
+        //    var products =  await unitOfWork.GetRepository<Product,int>().GetAllAsync(spec);
+
+        //   var result = mapper.Map<IEnumerable<ProductResultDto>>(products);
+
+        //   return result;
+
+        //}
+        public async Task<PaginationResponse<ProductResultDto>> GetAllProductsAsync(ProductSpecificationsParameters specParams)
         {
             var spec = new ProductWithBrandsAndTypesSpecifications(specParams);
-            var products =  await unitOfWork.GetRepository<Product,int>().GetAllAsync(spec);
+            var products = await unitOfWork.GetRepository<Product, int>().GetAllAsync(spec);
+            var specCount = new ProductWithCountSpecifications(specParams);
+            var count = await unitOfWork.GetRepository<Product, int>().CountAsync(specCount);    
+            var result = mapper.Map<IEnumerable<ProductResultDto>>(products);
 
-           var result = mapper.Map<IEnumerable<ProductResultDto>>(products);
-
-           return result;
+            return new PaginationResponse<ProductResultDto>(specParams.PageIndex,specParams.PageSize, count, result);
 
         }
         public async Task<ProductResultDto?> GetProductByIdAsync(int id)
