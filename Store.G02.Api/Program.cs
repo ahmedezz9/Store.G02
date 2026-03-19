@@ -1,12 +1,17 @@
 
 using Domain.Contracts;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+//using Microsoft.IdentityModel.Tokens.Experimental;
 using Persistence;
 using Persistence.Data;
 using Services;
 using Services.Abstractions;
 using Services.MappingProfiles;
+using Shared.ErrorsModels;
+using Store.G02.Api.Middlewares;
 using System.Threading.Tasks;
 
 namespace Store.G02.Api
@@ -32,12 +37,35 @@ namespace Store.G02.Api
 
             //builder.Services.AddAutoMapper(typeof(AsssemblyRefrence).Assembly);
             builder.Services.AddAutoMapper(cfg => { }, typeof(AsssemblyRefrence).Assembly);
-            builder.Services.AddScoped<IServiceManger,ServiceManger>();
+            builder.Services.AddScoped<IServiceManger, ServiceManger>();
+
+            builder.Services.Configure<ApiBehaviorOptions>
+                (
+                config =>
+                {
+                    config.InvalidModelStateResponseFactory = (actionContext) =>
+                    {
+                        var errors = actionContext.ModelState.Where(m => m.Value.Errors.Any())
+                                                              .Select(m => new ValidationError()
+                                                              {
+                                                                  Field = m.Key,
+                                                                  Errors = m.Value.Errors.Select(errors => errors.ErrorMessage)
+                                                              });
+                        var response = new ValidationErrorResponse() { Errors = errors};
+                        return new BadRequestObjectResult(response);
+                    };
+
+
+
+                });
+
             var app = builder.Build();
 
             using var scope = app.Services.CreateScope();
             var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
             await dbInitializer.InitializeAsync();
+
+            app.UseMiddleware<GlobalErrorHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

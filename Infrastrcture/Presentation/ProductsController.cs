@@ -25,7 +25,6 @@ namespace Presentation
         public async Task<IActionResult> GetProductById(int id)
         {
             var result = await serviceManger.ProductService.GetProductByIdAsync(id);
-            if (result is null) return NotFound();
             return Ok(result);
         }
         [HttpGet("brands")]
